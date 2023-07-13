@@ -1,15 +1,6 @@
 import random
 import os
 
-#select set of 4 random colors
-#duplicates are allowed, blanks are not
-# RD = Red
-# BU = Blue
-# YW = Yellow
-# GN = Green
-# WH = White
-# BK = Black
-
 game_name = """
  __   __  _______  _______  _______  _______  ______    __   __  ___   __    _  ______  
 |  |_|  ||   _   ||       ||       ||       ||    _ |  |  |_|  ||   | |  |  | ||      | 
@@ -21,21 +12,40 @@ game_name = """
 """
 # name generated using https://patorjk.com/software/taag/#p=display&f=Modular&t=Mastermind
 
-colors = ['r','b','y','g','w','k']
+colours = ['r','b','y','g','w','k']
+colour_dict = {'r': '\x1b[1;3;41m r \x1b[0m',
+               'b': '\x1b[1;37;44m b \x1b[0m',
+               'y': '\x1b[6;30;43m y \x1b[0m',
+               'g': '\x1b[6;30;42m g \x1b[0m',
+               'w': '\x1b[6;30;47m w \x1b[0m',
+               'k': '\x1b[1;37;40m k \x1b[0m',
+               "|": "\x1b[0m | ", 
+               "-": "\x1b[0m - "}
 game_board = None
 max_guesses = 12
 max_guess_dict = {'easy':12,'medium':10,'hard':8,'expert':6}
 
 def create_code():
-    return [colors[random.randint(0,len(colors)-1)] for _ in range(4)]
+    # RD = Red
+    # BU = Blue
+    # YW = Yellow
+    # GN = Green
+    # WH = White
+    # BK = Black
+    # select set of 4 random colors
+    # duplicates are allowed, blanks are not
+    return [colours[random.randint(0,len(colours)-1)] for _ in range(4)]
 
 def refresh_game_board(n_rows = 12):
     game_board = [['-', '-', '-', '-', '|', '-', '-', '-', '-'] for _ in range(n_rows)]
     return game_board
 
 def print_game_board():
+    print(
+        "  \x1b[6;30;47m-----Guesses-----\x1b[0m    |   \x1b[6;30;47m-----Results-----\x1b[0m")
+    print("                       |  ")
     for row in game_board:
-        print("  ".join(row))
+        print("  "+"  ".join([colour_dict[x] for x in row]))
     return
 
 
@@ -97,7 +107,7 @@ while play:
         user_guess = ""
         while bad_input:
             user_guess = list(input('Please provide a code sequence.\nAvailable colours: r, b, y, g, w, k\n').lower())
-            input_test = [True if x in colors else False for x in user_guess]
+            input_test = [True if x in colours else False for x in user_guess]
             if all(input_test) and len(user_guess) == 4:
                 bad_input = False
                 num_guesses += 1
@@ -122,6 +132,7 @@ while play:
     if once_more == 'y' or once_more == 'yes':
         play = True
     else:
+        os.system('clear')
         play = False
 
 #HOW TO PLAY THE GAME
