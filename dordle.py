@@ -34,6 +34,8 @@ with open('./nordle/wordle-La.txt', 'r') as f:
 
 game_board_1 = None
 #game_board_2 = None
+game_boards = []
+max_guess_dict = {1:6,2:7,4:9,8:13}
 max_guesses = 6
 
 def new_game_board(n_rows=6):
@@ -41,9 +43,11 @@ def new_game_board(n_rows=6):
                   for _ in range(n_rows)]
     return game_board
 
-def print_game_board(game_board):
+def print_game_board(game_board,letters):
     for row in game_board:
         print("  ".join(row))
+    print()
+    print(" ".join(letters))
 
 def check_word(guess,actual):
     result = ["--", "--", "--", "--", "--"]
@@ -69,7 +73,7 @@ def check_word(guess,actual):
 colour_dict = {
     '++': '\x1b[6;30;42m ',
     '+-': '\x1b[6;30;43m ',
-    '--': '\x1b[1;37;40m '
+    '--': '\x1b[2;30;47m '
 }
 end_str = ' \x1b[0m'
 
@@ -110,7 +114,7 @@ while play:
     #start game!
     while not win and num_guesses < max_guesses:
         os.system('clear')
-        print_game_board(game_board_1)
+        print_game_board(game_board_1, letters)
         #get user input
         user_guess = ""
         bad_input = True
@@ -129,16 +133,18 @@ while play:
                     print("Word is not valid. Try again.")
         #check success of word
         result = check_word(user_guess,secret_word)
-        print("Result: ",result)
         #format word for printing
         formatted = format_word(user_guess,result)
-        print("Format: ",formatted)
+        print(formatted)
+        for n,ch in enumerate(user_guess):
+            if ch in letters:
+                letters[letters.index(ch)] = formatted[n]
         #update game board
         game_board_1[num_guesses-1] = formatted
         if all([a=='++' for a in result]):
             win = True
     os.system('clear')
-    print_game_board(game_board_1)
+    print_game_board(game_board_1, letters)
     if win:
         print(f'You won in {num_guesses} guesses! Good job.')
     else:

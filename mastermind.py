@@ -13,6 +13,8 @@ game_name = """
 # name generated using https://patorjk.com/software/taag/#p=display&f=Modular&t=Mastermind
 
 colours = ['r','b','y','g','w','k']
+# reference for colour codes: 
+# https://stackoverflow.com/questions/287871/how-do-i-print-colored-text-to-the-terminal/3332860#3332860
 colour_dict = {'r': '\x1b[1;3;41m r \x1b[0m',
                'b': '\x1b[1;37;44m b \x1b[0m',
                'y': '\x1b[6;30;43m y \x1b[0m',
