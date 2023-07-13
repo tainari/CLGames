@@ -32,42 +32,76 @@ with open('./nordle/wordle-La.txt', 'r') as f:
         game_words.append(r.strip().upper())
         valid_words.add(r.strip().upper())
 
-game_board_1 = None
-#game_board_2 = None
-game_boards = []
-max_guess_dict = {1:6,2:7,4:9,8:13}
-max_guesses = 6
 
-def new_game_board(n_rows=6):
-    game_board = [[' - ', ' - ', ' - ', ' - ', ' - ']
-                  for _ in range(n_rows)]
+game_boards = []
+max_guess_dict = {1: 6, 2: 7, 4: 9, 8: 13}
+num_board_dict = {'easy': 1, 'medium': 2, 'hard': 4, 'expert': 8}
+
+def set_board_number():
+    while True:
+        ans = input("Do you want to play easy, medium, hard, or expert?\n")
+        if ans in ['easy','medium','hard','expert']:
+            return num_board_dict[ans]
+        else:
+            print("Not a valid option. Please try again.")
+
+def new_game_board(n_boards=1,n_rows=6):
+    game_board = [[[' - ', ' - ', ' - ', ' - ', ' - ']
+                  for _ in range(n_rows)] for _ in range(n_boards)]
     return game_board
 
-def print_game_board(game_board,letters):
-    for row in game_board:
-        print("  ".join(row))
+def print_game_board(game_boards,letters=[]):
+    for n in range(max_guesses):
+        row = []
+        for board in game_boards:
+            #print(board)
+            #input("pause")
+            row.append("  ".join(board[n]))
+        print(" | ".join(row))
+    # for row in game_board:
+    #     print("  ".join(row))
     print()
     print(" ".join(letters))
 
-def check_word(guess,actual):
-    result = ["--", "--", "--", "--", "--"]
-    remaining_letters = []
-    #check first for right letter, right place
-    for n, ch in enumerate(guess):
-        if ch == actual[n]:
-            result[n] = "++"
-        #if not correct, add leftover codeword letters
-        #to a separate array to check later
+def get_word_guess():
+    while True:
+        user_guess = input("Guess a five-letter word.\n").upper()
+        if user_guess in valid_words:
+            return list(user_guess)
         else:
-            remaining_letters.append(actual[n])
-    #iterate over word again, checking for out-of-place
-    #but correct letters; ensure no double-counting
-    #by popping "remaining letters" 
-    for n,ch in enumerate(guess):
-        if result[n] != "++" and ch in remaining_letters:
-            result[n] = "+-"
-            remaining_letters.pop(remaining_letters.index(ch))
-    return result
+            if len(user_guess) > 5:
+                print("Word is too long. Guess again.")
+            elif len(user_guess) < 5:
+                print("Word is too short. Guess again.")
+            else:
+                print("Word is not valid. Try again.")
+
+def check_word(guess,actual,words_won):
+    results = []
+    for n,codeword in enumerate(actual):
+        if words_won[n]:
+            result = ["++", "++", "++", "++", "++"]
+            results.append(result)
+        else:
+            result = ["--", "--", "--", "--", "--"]
+            remaining_letters = []
+            #check first for right letter, right place
+            for n, ch in enumerate(guess):
+                if ch == codeword[n]:
+                    result[n] = "++"
+                #if not correct, add leftover codeword letters
+                #to a separate array to check later
+                else:
+                    remaining_letters.append(codeword[n])
+            #iterate over word again, checking for out-of-place
+            #but correct letters; ensure no double-counting
+            #by popping "remaining letters" 
+            for n,ch in enumerate(guess):
+                if result[n] != "++" and ch in remaining_letters:
+                    result[n] = "+-"
+                    remaining_letters.remove(ch)
+            results.append(result)
+    return results
 
 
 colour_dict = {
@@ -77,10 +111,15 @@ colour_dict = {
 }
 end_str = ' \x1b[0m'
 
-def format_word(guess,results):
+
+def format_word(guess, results, words_won=[False, False, False, False, False]):
     formatted = []
-    return [colour_dict[results[n]] + ch + end_str \
-            for n, ch in enumerate(guess)]
+    for n,result in enumerate(results):
+        if words_won[n]:
+            formatted.append(["   ","    ","   ","   ","   "])
+        else:
+            formatted.append([colour_dict[result[n]] + ch + end_str for n, ch in enumerate(guess)])
+    return formatted
 
 
 print(game_name)
@@ -92,7 +131,9 @@ print("For each board, you'll see:")
 print("\tRight letter, right place: Green")
 print("\tRight letter, wrong place: Yellow")
 print("\tLetter not in word: Black ")
-print("You have X guesses. Good luck!")
+num_boards = set_board_number()
+max_guesses = max_guess_dict[num_boards]
+print(f"You have {max_guesses} guesses to guess {num_boards} words. Good luck!")
 input("Enter anything to begin.\n")
 
 play = True
@@ -100,7 +141,8 @@ while play:
     #clear screen for clean experience
     os.system('clear')
     # reset game board, reset values
-    game_board_1 = new_game_board()
+    game_board = new_game_board(num_boards,max_guesses)
+    words_won = [False for _ in range(num_boards)]
     #game_board_2 = refresh_game_board()
     num_guesses = 0
     win = False
@@ -110,46 +152,40 @@ while play:
             'P', 'Q', 'R', 'S', 'T',
             'U', 'V', 'W', 'X', 'Y', 'Z']
     #choose a word
-    secret_word = choose_word(game_words)
+    secret_words = [choose_word(game_words) for _ in range(num_boards)]
     #start game!
     while not win and num_guesses < max_guesses:
         os.system('clear')
-        print_game_board(game_board_1, letters)
+        print_game_board(game_board, letters)
         #get user input
-        user_guess = ""
-        bad_input = True
-        while bad_input:
-            user_guess = input("Guess a five-letter word.\n").upper()
-            if user_guess in valid_words:
-                bad_input = False
-                num_guesses += 1
-                user_guess = list(user_guess)
-            else:
-                if len(user_guess) > 5:
-                    print("Wsord is too long. Guess again.")
-                elif len(user_guess) < 5:
-                    print("Word is too short. Guess again.")
-                else:
-                    print("Word is not valid. Try again.")
+        user_guess = get_word_guess()
+        num_guesses += 1
         #check success of word
-        result = check_word(user_guess,secret_word)
+        result = check_word(user_guess,secret_words,words_won)
         #format word for printing
-        formatted = format_word(user_guess,result)
-        print(formatted)
+        formatted = format_word(user_guess,result,words_won)
+        #print(formatted)
         for n,ch in enumerate(user_guess):
             if ch in letters:
-                letters[letters.index(ch)] = formatted[n]
+                letters.remove(ch)
+                #letters[letters.index(ch)] = formatted[n]
+        #update which words have been won
+        words_won = [True if r == ["++", "++", "++", "++","++"]\
+                     else False\
+                     for r in result]
+        print(words_won)
         #update game board
-        game_board_1[num_guesses-1] = formatted
-        if all([a=='++' for a in result]):
+        for n, board in enumerate(game_board):
+            game_board[n][num_guesses-1] = formatted[n]
+        if all(words_won):
             win = True
     os.system('clear')
-    print_game_board(game_board_1, letters)
+    print_game_board(game_board)
     if win:
         print(f'You won in {num_guesses} guesses! Good job.')
     else:
         print('You lost! Sorry.')
-        print(f'The correct guess was: {secret_word}')
+        print(f'The correct guess was: {secret_words}')
     once_more = input(
         'Would you like to play again?\nType yes or no.\n').lower()
     if once_more == 'y' or once_more == 'yes':
