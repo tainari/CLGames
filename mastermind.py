@@ -1,4 +1,5 @@
 import random
+import os
 
 #select set of 4 random colors
 #duplicates are allowed, blanks are not
@@ -22,13 +23,20 @@ game_name = """
 
 colors = ['r','b','y','g','w','k']
 game_board = None
+max_guesses = 12
+max_guess_dict = {'easy':12,'medium':10,'hard':8,'expert':6}
 
 def create_code():
     return [colors[random.randint(0,len(colors)-1)] for _ in range(4)]
 
 def refresh_game_board(n_rows = 12):
-    game_board = [['-', '-', '-', '-', '|', '-', '-', '-', '-'] * n_rows]
+    game_board = [['-', '-', '-', '-', '|', '-', '-', '-', '-'] for _ in range(n_rows)]
     return game_board
+
+def print_game_board():
+    for row in game_board:
+        print("  ".join(row))
+    return
 
 
 def check_guesses(guess_array,code_array):
@@ -50,18 +58,40 @@ def check_guesses(guess_array,code_array):
     #return result :) 
     return result
 
+##START GAME HERE
+os.system('clear')
 print(game_name)
+print("Welcome to Mastermind!")
+print("In this game, the computer will generate a secret code\
+      of four colours (red, blue, yellow, green, white, black).")
+print("Your goal is to guess the exact code.")
+print("Each round, you will be able to guess a sequence of four colours.")
+print("Repeats are allowed, but blanks are not.")
+print("The computer will return how close your guess is:")
+print("\tRed = you have the right colour in the right spot.")
+print("\tWhite = you have the right colour in the wrong place.")
+print("These results are *not* in order!")
+bad_input = True
+while bad_input:
+    mode = input("Would you like to play in easy, medium, hard, or expert mode?\n")
+    if mode in max_guess_dict:
+        max_guesses = max_guess_dict[mode]
+        bad_input = False
+    else:
+        print("Bad response. Please try again.")
+
 play = True
 while play:
+    os.system('clear')
     all_guesses = []
     all_results = []
-    game_board = refresh_game_board()
+    game_board = refresh_game_board(max_guesses)
     num_guesses = 0
-    max_guesses = 12
     win = False
     secret_code = create_code()
-    print(secret_code)
+    #print(secret_code)
     while not win and num_guesses < max_guesses:
+        print_game_board()
         print(f'Guess number: {num_guesses}')
         bad_input = True
         user_guess = ""
@@ -74,11 +104,15 @@ while play:
                 all_guesses.append(user_guess)
             else:
                 print("Input is not valid. Please try again.")
+        os.system('clear')
         results = check_guesses(user_guess, secret_code)
         all_results.append(results)
-        print(f'Results: {results}')
+        game_board[num_guesses-1] = user_guess + ["|"] + results
+        #print(f'Results: {results}')
         if results == ['r','r','r','r']:
             win = True
+    os.system('clear')
+    print_game_board()
     if win:
         print(f'You won in {num_guesses} guesses! Good job.')
     else:
