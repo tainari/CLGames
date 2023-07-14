@@ -42,4 +42,4 @@ deck = shuffle_deck(deck)
 
 play = True
 while play:
-    
+    play = False
